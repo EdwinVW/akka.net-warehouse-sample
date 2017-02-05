@@ -21,7 +21,7 @@ This application simulates a central warehouse system with multiple stores that 
 ## Actor Hierarchy
 The following Actor hierarchy is used in the system:
 
-![Actor Hierarchy](actor-hierarch.png)
+![Actor Hierarchy](actor-hierarchy.png)
 
 For every store a *StoreActor* is created. The StoreActor creates a *CustomerActor* per customer. Every CustomerActor creates a *ScannerActor* to scan items. In this demo, customers with a scanner are simulated using a repeated scheduled message to *Self* with a random amount of delay-time.
 
