@@ -61,10 +61,12 @@ Throughout the simulation, information about what's going on is printed to the c
 Make sure you browse the code of the start solution first to see how I've used Akka.NET to build this system. Make sure you're familiar with the structure of this solution before looking at the other sample solutions in this repo.
 
 ## Remoting solution
-The *Remoting* solution demonstrates location transparency using *Akka.Remote* (see the [documentation](http://getakka.net/docs/remoting)). It contains an additional project *Sales* which is a console application. In this solution, the *Sales* actor will be created in the process of this second console application. Make sure you set both the *Warehouse* project as the *Sales* project as start-up projects. 
+The *Remoting* solution demonstrates location transparency using *Akka.Remote* (see the [documentation](http://getakka.net/docs/remoting)). It contains an additional project *Sales* which is a console application. In this solution, the *Sales* actor will be created in the process of this second console application. Make sure you set both the *Warehouse* project and the *Sales* project as start-up projects. 
 
 ### Configuration
-The code in this solution is almost identical to the code in the *Start* solution. The magic is primarily in the *App.config* of the console applications. In the *Warehouse* project, remoting is configured:
+The code in this solution is almost identical to the code in the *Start* solution. The magic is primarily in the *App.config* of the console applications. 
+
+In the *Warehouse* project, remoting is configured:
 
 ```JSON  
 actor { 
@@ -82,7 +84,9 @@ remote { 
   }  
 }
 ```
-Notice that the actor named */sales* will be created at address: *akka.tcp://sales@localhost:9999*. The app.config of *Sales* project also contains remoting configuration:
+Notice that the actor named */sales* will be created at address: *akka.tcp://sales@localhost:9999*. 
+
+The app.config of the *Sales* project also contains remoting configuration:
 
 ```JSON  
 actor { 
@@ -97,6 +101,8 @@ remote { 
 }
 ```
 Notice that this process will be configured to listen for remoting messages on port *9999*.
+
+The *Sales* actor is changed slightly in this solution to make sure it dumps its sales report to the console after every sale.
 
 ## Persistence solution
 The *Persistence* solution demonstrates Actor state persistence using *Akka.Persistence* (see the [documentation](http://getakka.net/docs/persistence/architecture)) to enable an actor to store its state and survive restarts. By default, *event-sourcing* is used to store the state of the actor. This means that updating the state will always be done by handling events.
