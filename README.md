@@ -23,13 +23,19 @@ The following Actor hierarchy is used in the system:
 
 ![Actor Hierarchy](actor-hierarchy.png)
 
-For every store a *Store* actor is created. The store actor creates a *Customer* actor per customer. Every customer actor creates a *Scanner* actor to represent the a barcode scanner. In this demo, customers with a scanner are simulated by letting the customer actor repeatedly send a scheduled message to *Self* at random intervals.
-
-The *Inventory* actor creates a *Product* actor per available product in the inventory. I chose this solution in order to serialize access to the product stock-amount (state) by multiple customers. In the initial design, I did this by letting the single InventoryActor handle this. This worked but introduced a bottle-neck at the InventoryActor (mailbox filled up) and increased the response-times which was bad for the customers. 
+For every store a *Store* actor is created. The store actor creates a *Customer* actor per customer. Every customer actor creates a *Scanner* actor to represent a bar-code scanner. In this demo, customers with a scanner are simulated by letting the customer actor repeatedly send a scheduled message to *Self* at random intervals.
 
 The *Sales* actor accumulates all sales. Only products actually sold are added - back-ordered products will not show up in the sales report.
 
 The *BackOrder* actor tracks the list of products that must be back-ordered because of insufficient stock.
+
+### Handling concurrency on inventory
+Because multiple customers could order the same product at the same time, I needed to serialize access to the products' stock-amount. I solved this problem by letting the *Inventory* actor create a *Product* actor per available product in the inventory. Every product actor has as its state the amount of products in stock.
+
+### Refactoring
+In my initial design, I tried to solve the concurrency problem by letting a single inventory actor handle this. While this solution worked, it introduced a performance bottle-neck at the inventory Actor. Its mailbox filled up quite rapidly which decreased the performance of the system. 
+
+This demonstrates that it's important that you experiment with several solutions for your problem or partition your problem in a different way in order to solve it efficiently using an Actor Model approach. My advice would be to always start drawing out the actor hierarchy on a whiteboard (or do some [Event Storming](http://eventstorming.com/)) to validate your design before implementing it.
 
 ## Start Solution
 The *Start* solution contains the initial version of the demo application. All actors run in a single process. This process is the *Warehouse* console application. When this project is started, the application initializes and waits for a keypress before starting the simulation. 
