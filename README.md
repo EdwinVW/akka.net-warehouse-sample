@@ -37,7 +37,7 @@ The *Start* solution contains the initial version of the demo application. All a
 * *numberOfStores* in *Program.cs* in the *Warehouse* project. 
 * *_numberOfCustomers* in *StoreActor.cs* in the *Actors* project.
 
-Throughout the simulationinformation about what's going on is printed to the console. I've used different colors to identify which actor prints the message:
+Throughout the simulation, information about what's going on is printed to the console. I've used different colors to identify which actor prints the message:
 
 | Color     | Emitted by        |
 |:----------|:------------------|
@@ -46,3 +46,62 @@ Throughout the simulationinformation about what's going on is printed to the con
 | Green     | Product actor     |
 | Cyan      | Sales actor       |
 | Red       | BackOrder actor   |
+
+Browse the code to see how I've used Akka.NET to build this system. Make sure you're familiar with this solution before looking at the othe sample solutions in this repo.
+
+## Remoting solution
+The *Remoting* solution demonstrates location transparency using *Akka.Remote* ((see docs)[http://getakka.net/docs/remoting/]). It contains an additional project *Sales* which is a console application. In this solution, the *Sales* actor will be created in the process of this second console application. Make sure you set both the *Warehouse* project as the *Sales* project as startup projects. 
+
+The code in this solution is almost identical to the code in the *Start* solution. The magic is primarily in the *App.config* of the console applications. In the *Warehouse* project, remoting is configured:
+
+```JSON  
+actor { 
+  provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"    
+  
+  deployment {   
+    /sales {  remote = "akka.tcp://sales@localhost:9999" }               
+  }   
+}  
+
+remote { 
+  helios.tcp {   
+    port = 0 # bound to a dynamic port assigned by the OS   
+    hostname = localhost 
+  }  
+}
+```
+Notice that the actor named */sales* will be created at address: *akka.tcp://sales@localhost:9999*. The app.config of *Sales* project also contains remoting configuration:
+
+```JSON  
+actor { 
+  provider = "Akka.Remote.RemoteActorRefProvider, Akka.Remote"  
+}   
+
+remote { 
+  helios.tcp {   
+    port = 9999   
+    hostname = localhost 
+  }  
+}
+```
+Notice that this process will be configured to listen for remoting messages on port *9999*.
+
+## Persistence solution
+The *Persistence* solution demonstrates Actor state persistence using *Akka.Persistence* ([see docs](http://getakka.net/docs/persistence/architecture)) to enable an actor to store its state and survive restarts. By default, *event-sourcing* is used to store the state of the actor. This means that updating the state will always be done by handling events.
+
+For this demo I've chosen to make the *Sales* actor persistent. I could've also chosen the *Product* actor - which would made more sense in real-life. But because the *Sales* actor was already living in a seperate process, I selected that one.
+
+Akka.Persistence comes with several pluggable storage-providers. For this sample, I've chosen the *Azure Table Storage* provider. This means that you need to have the Azure Storage SDK with the local Storage Emulator installed on your machine in order to run this demo. Another option would be to configure a different storage provider (as described in [here](http://getakka.net/docs/persistence/storage-plugins)).  
+
+The structure for this solution is basically the same as the *Remoting* solution with the following changes:
+
+* In the *app.config* of the *Sales* project Akka.Persistence is configured.
+* The *Sales* actor derives from *ReceivePersistentActor* to make it persistent.
+
+In the constructor of the *Sales* actor you can see how I've used the *Command* method from the base-class to specify how the actor handles incoming commands by:
+
+* creating an event based on the command,
+* persist this event and
+* update the state of the actor and handle the event using the *Persist* method from the base-class.
+
+Also the constructor shows how the actor handles recovering from restarts using the *Recover* method from the base-class.
