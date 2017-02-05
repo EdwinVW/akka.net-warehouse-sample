@@ -32,11 +32,15 @@ The *Sales* actor accumulates all sales. Only products actually sold are added -
 The *BackOrder* actor tracks the list of products that must be back-ordered because of insufficient stock.
 
 ## Start Solution
-The *Start* solution contains the initial version of the demo application. All actors run in a single process. This process is the *Warehouse* console application. When this project is started, the application initializes and waits for a keypress before starting a simulation. By default, only 1 store with 1 customer is simulated. You can increase this by setting the following variables:
+The *Start* solution contains the initial version of the demo application. All actors run in a single process. This process is the *Warehouse* console application. When this project is started, the application initializes and waits for a keypress before starting the simulation. 
+
+### Simulating concurrency
+By default, only 1 store with 1 customer is simulated. You can increase this by setting the following variables:
 
 * *numberOfStores* in *Program.cs* in the *Warehouse* project. 
 * *_numberOfCustomers* in *StoreActor.cs* in the *Actors* project.
 
+### Simulation output
 Throughout the simulation, information about what's going on is printed to the console. I've used different colors to identify which actor prints the message:
 
 | Color     | Emitted by        |
@@ -47,11 +51,13 @@ Throughout the simulation, information about what's going on is printed to the c
 | Cyan      | Sales actor       |
 | Red       | BackOrder actor   |
 
-**Browse the code of the start solution first to see how I've used Akka.NET to build this system. Make sure you're familiar with the structure of this solution before looking at the other sample solutions in this repo.**
+### Getting started
+Make sure you browse the code of the start solution first to see how I've used Akka.NET to build this system. Make sure you're familiar with the structure of this solution before looking at the other sample solutions in this repo.
 
 ## Remoting solution
 The *Remoting* solution demonstrates location transparency using *Akka.Remote* (see the [documentation](http://getakka.net/docs/remoting)). It contains an additional project *Sales* which is a console application. In this solution, the *Sales* actor will be created in the process of this second console application. Make sure you set both the *Warehouse* project as the *Sales* project as start-up projects. 
 
+### Configuration
 The code in this solution is almost identical to the code in the *Start* solution. The magic is primarily in the *App.config* of the console applications. In the *Warehouse* project, remoting is configured:
 
 ```JSON  
@@ -89,15 +95,19 @@ Notice that this process will be configured to listen for remoting messages on p
 ## Persistence solution
 The *Persistence* solution demonstrates Actor state persistence using *Akka.Persistence* (see the [documentation](http://getakka.net/docs/persistence/architecture)) to enable an actor to store its state and survive restarts. By default, *event-sourcing* is used to store the state of the actor. This means that updating the state will always be done by handling events.
 
+### Peristent Sales actor
 For this demo I've chosen to make the *Sales* actor persistent. I could've also chosen the *Product* actor - which would made more sense in real-life. But because the *Sales* actor was already living in a seperate process, I selected that one.
 
+### Storage provider
 Akka.Persistence comes with several pluggable storage-providers. For this sample, I've chosen the *Azure Table Storage* provider. This means that you need to have the Azure Storage SDK with the local Storage Emulator installed on your machine in order to run this demo. Another option would be to configure a different storage provider (as described [here](http://getakka.net/docs/persistence/storage-plugins)).  
 
+### Configuration
 The structure for this solution is basically the same as the *Remoting* solution with the following changes:
 
 * In the *app.config* of the *Sales* project Akka.Persistence is configured.
 * The *Sales* actor derives from *ReceivePersistentActor* to make it persistent.
 
+### Setting up the persistent actor
 In the constructor of the *Sales* actor you can see how I've used the *Command* method from the base-class to specify how the actor handles incoming commands by:
 
 1. creating an event based on the command,
@@ -107,6 +117,14 @@ In the constructor of the *Sales* actor you can see how I've used the *Command* 
 Also the constructor shows how the actor handles recovering from restarts using the *Recover* method from the base-class. In this sample I've used a generic JObject to deserialize the events from storage. 
 
 Notice how I use the convenient *IsRecovering* property from the base-class to determine whether I'm handling a new event as a result of command that came in (*false*) or I'm replaying a historical event (*true*).
+
+### Initializing Azure Table Storage
+In the solution I've included a Powershell script *preparepersistence.ps1*. This script does 2 things: 
+
+1. Start the local Azure Storage Emulator.
+2. Delete **any** existing tables in development storage.
+
+You can use this script to initialize the environment before running the sample.
 
 ## Disclaimer
 This is sample code and should be treated as such. I've demonstrated only a small portion of the Akka.NET framework and possibilities. Also I've cut a lot of corners which I wouldn't ever do in production code. 
