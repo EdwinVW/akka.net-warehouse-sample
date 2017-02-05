@@ -1,2 +1,2 @@
 # akka.net-warehouse-sample
-Sample application demonstrating several aspects of Akka.NET.
+This is a sample application demonstrating some aspects of Akka.NET. I use this application for demos during talks I give on Building Actor Model systems using Akka.NET.
