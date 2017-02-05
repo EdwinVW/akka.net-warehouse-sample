@@ -36,3 +36,11 @@ Customer [1..n]      Product [1..n]
 Scanner
 ```
 
+For every store a *StoreActor* is created. The StoreActor creates a *CustomerActor* per customer. Every CustomerActor creates a *ScannerActor* to scan items. In this demo, customers with a scanner are simulated using a repeated scheduled message to *Self* with a random amount of delay-time.
+
+The *InventoryActor* creates a *ProductActor*is created per available product in the inventory. I chose this solution in order to serialize access to the product stock-amount (state) by multiple customers. In the initial design, I did this by letting the single InventoryActor handle this. This worked but introduced a bottle-neck at the InventoryActor (mailbox filled up) and increased the response-times which was bad for the customers. 
+
+The *SalesActor* accumulates all sales. Only products actually sold are added - back-ordered products are not added.
+
+The *BackOrderActor* tracks a list of products that need to be back-ordered because of insufficient stock.
+
