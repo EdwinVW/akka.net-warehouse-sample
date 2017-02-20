@@ -1,5 +1,5 @@
 # Akka.NET - Warehouse Sample
-This is a sample application demonstrating some aspects of Akka.NET. I use this application for demos during talks I give on Building Actor Model systems using Akka.NET.
+This is a sample application demonstrating some aspects of Akka.NET. I use this application for demos during talks I give on Building Actor Model systems using Akka.NET ([download the slides](Building%20Actor%20Model%20systems%20using%20Akka-NET%20-%20Edwin%20van%20Wijk.pdf)).
 
 This repo contains 3 folders:
 
